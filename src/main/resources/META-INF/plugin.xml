@@ -6,14 +6,5 @@
     <!-- Product and plugin compatibility requirements -->
     <!-- https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.anstarovoyt.intellijstimulus.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.anstarovoyt.intellijstimulus.services.MyProjectService"/>
-    </extensions>
-
-    <applicationListeners>
-        <listener class="com.github.anstarovoyt.intellijstimulus.listeners.MyProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
+    
 </idea-plugin>
