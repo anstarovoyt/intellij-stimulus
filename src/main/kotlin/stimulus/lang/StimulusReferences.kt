@@ -24,6 +24,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlTag
 
 const val dataControllerName = "data-controller"
+const val dataActionName = "data-action"
 
 fun resolveController(name: String, context: PsiElement): PsiElement? {
     val filesByNames = findControllersByName(context, name, "js") + findControllersByName(context, name, "ts")
