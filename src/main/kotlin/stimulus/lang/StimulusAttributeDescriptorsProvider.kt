@@ -19,18 +19,25 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
         return getControllerAttributeDescriptors() +
                 getActionsAttributeDescriptors() +
                 getTargetDescriptors(controllers) +
-                getValuesDescriptors(controllers)
+                getValuesDescriptors(controllers) +
+                getClassesDescriptors(context, controllers)
     }
 
     override fun getAttributeDescriptor(attributeName: String, context: XmlTag): XmlAttributeDescriptor? {
         return getAttributeDescriptors(context).firstOrNull { it.name == attributeName }
     }
 
+    private fun getControllerAttributeDescriptors(): Array<XmlAttributeDescriptor> =
+        arrayOf(AnyXmlAttributeDescriptor(dataControllerName))
+
+    private fun getActionsAttributeDescriptors(): Array<XmlAttributeDescriptor> =
+        arrayOf(AnyXmlAttributeDescriptor(dataActionName))
+
     private fun getTargetDescriptors(controllers: List<Pair<XmlTag, JSClass>>): Array<XmlAttributeDescriptor> {
         return controllers.mapNotNull { (_, controller) ->
             val targetsField = controller.findFieldByName("targets")
             return@mapNotNull if (targetsField != null && targetsField.jsContext == JSContext.STATIC)
-                TargetFieldAttributeDescriptor(targetsField)
+                TargetsFieldAttributeDescriptor(targetsField)
             else null
         }.toTypedArray()
     }
@@ -44,14 +51,20 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
         }.flatten().toTypedArray()
     }
 
-    private fun getControllerAttributeDescriptors(): Array<XmlAttributeDescriptor> =
-        arrayOf(AnyXmlAttributeDescriptor(dataControllerName))
-
-    private fun getActionsAttributeDescriptors(): Array<XmlAttributeDescriptor> =
-        arrayOf(AnyXmlAttributeDescriptor(dataActionName))
+    private fun getClassesDescriptors(
+        context: XmlTag,
+        controllers: List<Pair<XmlTag, JSClass>>
+    ): Array<XmlAttributeDescriptor> {
+        return controllers.filter { (tag, _) -> tag == context }.mapNotNull { (_, controller) ->
+            val classesField = controller.findFieldByName("classes")
+            return@mapNotNull (classesField?.initializer as? JSArrayLiteralExpression)
+                ?.expressions?.mapNotNull { it as? JSLiteralExpression }
+                ?.map { ClassesFieldAttributeDescriptor(it) }
+        }.flatten().toTypedArray()
+    }
 }
 
-class TargetFieldAttributeDescriptor(private val field: JSField) : BaseStimulusAttributeDescriptor() {
+class TargetsFieldAttributeDescriptor(private val field: JSField) : BaseStimulusAttributeDescriptor() {
     override fun isEnumerated(): Boolean = true
     override fun getDeclaration(): PsiElement = field
     override fun getEnumeratedValues(): Array<String>? =
@@ -63,14 +76,20 @@ class TargetFieldAttributeDescriptor(private val field: JSField) : BaseStimulusA
     override fun getName(): String = "data-${toControllerName(field.containingFile)}-target"
 }
 
+class ClassesFieldAttributeDescriptor(private val expression: JSLiteralExpression) : BaseStimulusAttributeDescriptor() {
+    override fun getDeclaration(): PsiElement = expression
+    override fun getName(): String =
+        "data-${toControllerName(expression.containingFile)}-${expression.stringValue}-class"
+}
+
 class ValuesFieldAttributeDescriptor(private val property: JSProperty) : BaseStimulusAttributeDescriptor() {
-    override fun isEnumerated(): Boolean = false
-    override fun getEnumeratedValues(): Array<String>? = null
     override fun getDeclaration(): PsiElement = property
     override fun getName(): String = "data-${toControllerName(property.containingFile)}-${property.name}-value"
 }
 
 abstract class BaseStimulusAttributeDescriptor : BasicXmlAttributeDescriptor() {
+    override fun isEnumerated(): Boolean = false
+    override fun getEnumeratedValues(): Array<String>? = emptyArray()
     override fun isFixed(): Boolean = false
     override fun getDefaultValue(): String? = null
     override fun init(element: PsiElement?) {}
