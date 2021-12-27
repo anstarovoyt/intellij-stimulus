@@ -9,7 +9,7 @@ import com.intellij.xml.util.XmlUtil
 class StimulusReferenceProvider : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
         XmlUtil.registerXmlAttributeValueReferenceProvider(
-            registrar, arrayOf("data-controller"), null, ControllerReferenceProvider()
+            registrar, arrayOf(dataControllerName), null, ControllerReferenceProvider()
         )
     }
 }
@@ -17,7 +17,7 @@ class StimulusReferenceProvider : PsiReferenceContributor() {
 private class ControllerReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
         if (element !is XmlAttributeValue) return PsiReference.EMPTY_ARRAY
-        var currentOffset = 1 //quote
+        var currentOffset = 1
 
         return element
             .value

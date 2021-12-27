@@ -9,7 +9,8 @@
     <depends>JavaScript</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <psi.referenceContributor language="HTML" 
+        <psi.referenceContributor language="HTML"
                                   implementation="stimulus.lang.StimulusReferenceProvider"/>
+        <xml.attributeDescriptorsProvider order="first" implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
     </extensions>
 </idea-plugin>
