@@ -12,5 +12,6 @@
         <psi.referenceContributor language="HTML"
                                   implementation="stimulus.lang.StimulusReferenceProvider"/>
         <xml.attributeDescriptorsProvider order="first" implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
+        <implicitUsageProvider implementation="stimulus.lang.js.StimulusImplicitUsagesProvider" />
     </extensions>
 </idea-plugin>
