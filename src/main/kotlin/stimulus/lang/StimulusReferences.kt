@@ -13,10 +13,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiReferenceBase
+import com.intellij.psi.*
 import com.intellij.psi.search.DelegatingGlobalSearchScope
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.FilenameIndex
@@ -86,4 +83,26 @@ class StimulusControllerReference(private val name: String, psiElement: PsiEleme
             .map { LookupElementBuilder.create(it) }
             .toTypedArray()
 
+}
+
+class StimulusMethodReference(
+    private val name: String,
+    private val parentRef: PsiReference,
+    psiElement: PsiElement,
+    range: TextRange
+) :
+    PsiReferenceBase<PsiElement>(psiElement, range, true) {
+    override fun resolve(): PsiElement? {
+        return resolveParent()?.findFunctionByName(name)
+    }
+
+    private fun resolveParent(): JSClass? {
+        val parent = parentRef.resolve() ?: return null
+        return ((parent as? ES6ExportDefaultAssignment)?.namedElement as? JSClass)
+    }
+
+    override fun getVariants(): Array<Any> {
+        val resolveParent = resolveParent() ?: return emptyArray()
+        return resolveParent.functions.map { LookupElementBuilder.create(it) }.toTypedArray()
+    }
 }
