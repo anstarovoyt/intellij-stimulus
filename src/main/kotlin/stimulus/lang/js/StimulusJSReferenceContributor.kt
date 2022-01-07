@@ -83,6 +83,7 @@ class StimulusClassFieldReference(private val refExpression: JSReferenceExpressi
         val targetField = jsClass.findFieldByName(fieldName) ?: return null
         if (targetField.jsContext != JSContext.STATIC) return null
         if (null != getLiteralValues(targetField).firstOrNull { it == propName }) {
+            //to force empty type
             return JSLocalImplicitElementImpl(name, null, targetField, JSImplicitElement.Type.Property)
         }
         return null
