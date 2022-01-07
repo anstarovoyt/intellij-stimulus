@@ -6,7 +6,7 @@ import com.intellij.psi.*
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.util.ProcessingContext
 
-class StimulusReferenceProvider : PsiReferenceContributor() {
+class StimulusReferenceContributor : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
         registrar.registerReferenceProvider(
             XmlPatterns.xmlAttributeValue().withLocalName(dataControllerName),

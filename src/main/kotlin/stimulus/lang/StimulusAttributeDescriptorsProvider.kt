@@ -10,6 +10,11 @@ import com.intellij.xml.XmlAttributeDescriptorsProvider
 import com.intellij.xml.impl.BasicXmlAttributeDescriptor
 import com.intellij.xml.impl.schema.AnyXmlAttributeDescriptor
 
+fun getLiteralValues(field: JSField) = (field.initializer as? JSArrayLiteralExpression)
+    ?.expressions?.mapNotNull { it as? JSLiteralExpression }
+    ?.mapNotNull { it.stringValue }
+    ?.toTypedArray() ?: emptyArray()
+
 class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
 
     override fun getAttributeDescriptors(context: XmlTag): Array<XmlAttributeDescriptor> {
@@ -67,11 +72,7 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
 class TargetsFieldAttributeDescriptor(private val field: JSField) : BaseStimulusAttributeDescriptor() {
     override fun isEnumerated(): Boolean = true
     override fun getDeclaration(): PsiElement = field
-    override fun getEnumeratedValues(): Array<String>? =
-        (field.initializer as? JSArrayLiteralExpression)
-            ?.expressions?.mapNotNull { it as? JSLiteralExpression }
-            ?.mapNotNull { it.stringValue }
-            ?.toTypedArray()
+    override fun getEnumeratedValues(): Array<String> = getLiteralValues(field)
 
     override fun getName(): String = "data-${toControllerName(field.containingFile)}-target"
 }

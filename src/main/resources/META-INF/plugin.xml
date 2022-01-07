@@ -10,8 +10,12 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <psi.referenceContributor language="HTML"
-                                  implementation="stimulus.lang.StimulusReferenceProvider"/>
+                                  implementation="stimulus.lang.StimulusReferenceContributor"/>
+        <psi.referenceContributor language="JavaScript"
+                                  implementation="stimulus.lang.js.StimulusJSReferenceContributor"/>
         <xml.attributeDescriptorsProvider order="first" implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
         <implicitUsageProvider implementation="stimulus.lang.js.StimulusImplicitUsagesProvider" />
+    </extensions>
+    <extensions defaultExtensionNs="JavaScript">
     </extensions>
 </idea-plugin>
