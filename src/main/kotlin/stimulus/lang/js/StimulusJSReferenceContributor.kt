@@ -1,5 +1,9 @@
 package stimulus.lang.js
 
+import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.lang.javascript.patterns.JSPatterns
 import com.intellij.lang.javascript.psi.*
 import com.intellij.lang.javascript.psi.ecma6.impl.JSLocalImplicitElementImpl
@@ -79,7 +83,8 @@ class StimulusClassFieldReference(private val refExpression: JSReferenceExpressi
     }
 
     private fun resolveAsValue(jsClass: JSClass, name: String): PsiElement? {
-        val field = getStaticField(jsClass, name, valuePropertySuffix, valuesField) ?: return null
+        if (!name.endsWith(valuePropertySuffix) && !name.endsWith(StringUtil.pluralize(valuePropertySuffix))) return null
+        val field = getStaticField(jsClass, valuesField) ?: return null
         val propName = getSimplePropertyName(name, valuePropertySuffix)
         val jsProperty = (field.initializer as? JSObjectLiteralExpression)?.properties?.firstOrNull {
             it.name == propName
@@ -94,7 +99,8 @@ class StimulusClassFieldReference(private val refExpression: JSReferenceExpressi
         suffix: String,
         fieldName: String
     ): PsiElement? {
-        val field = getStaticField(jsClass, name, suffix, fieldName) ?: return null
+        val field = getStaticField(jsClass, fieldName) ?: return null
+        if (!name.endsWith(suffix) && !name.endsWith(StringUtil.pluralize(suffix))) return null
         val propName = getSimplePropertyName(name, suffix)
         if (null != getLiteralValues(field).firstOrNull { it == propName }) {
             //to force empty type
@@ -113,9 +119,32 @@ class StimulusClassFieldReference(private val refExpression: JSReferenceExpressi
         return withoutSuffix
     }
 
-    private fun getStaticField(jsClass: JSClass, name: String, suffix: String, fieldName: String): JSField? {
-        if (!name.endsWith(suffix) && !name.endsWith(StringUtil.pluralize(suffix))) return null
+    private fun getStaticField(jsClass: JSClass, fieldName: String): JSField? {
         val field = jsClass.findFieldByName(fieldName) ?: return null
         return if (field.jsContext != JSContext.STATIC) null else field
+    }
+}
+
+class StimulusCompletionContributor : CompletionContributor() {
+    override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
+        val parent = parameters.position.parent
+        if (parent is JSReferenceExpression && parent.qualifier is JSThisExpression) {
+            val jsClass = getOwnerClass(parent) ?: return
+            result.addAllElements(getLiteralValues(jsClass.findFieldByName(targetsField)).map {
+                LookupElementBuilder.create(it + targetPropertySuffix)
+            })
+            result.addAllElements(getLiteralValues(jsClass.findFieldByName(classesField)).map {
+                LookupElementBuilder.create(it + classPropertySuffix)
+            })
+            result.addAllElements((jsClass.findFieldByName(valuesField)
+                ?.initializer as? JSObjectLiteralExpression)
+                ?.properties
+                ?.mapNotNull { it.name }
+                ?.map {
+                    LookupElementBuilder.create(it + valuePropertySuffix)
+                } ?: emptyList())
+
+        }
+
     }
 }

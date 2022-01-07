@@ -9,8 +9,11 @@ import com.intellij.xml.XmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptorsProvider
 import com.intellij.xml.impl.BasicXmlAttributeDescriptor
 import com.intellij.xml.impl.schema.AnyXmlAttributeDescriptor
+import stimulus.lang.js.classesField
+import stimulus.lang.js.targetsField
+import stimulus.lang.js.valuesField
 
-fun getLiteralValues(field: JSField) = (field.initializer as? JSArrayLiteralExpression)
+fun getLiteralValues(field: JSField?) = (field?.initializer as? JSArrayLiteralExpression)
     ?.expressions?.mapNotNull { it as? JSLiteralExpression }
     ?.mapNotNull { it.stringValue }
     ?.toTypedArray() ?: emptyArray()
@@ -40,7 +43,7 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
 
     private fun getTargetDescriptors(controllers: List<Pair<XmlTag, JSClass>>): Array<XmlAttributeDescriptor> {
         return controllers.mapNotNull { (_, controller) ->
-            val targetsField = controller.findFieldByName("targets")
+            val targetsField = controller.findFieldByName(targetsField)
             return@mapNotNull if (targetsField != null && targetsField.jsContext == JSContext.STATIC)
                 TargetsFieldAttributeDescriptor(targetsField)
             else null
@@ -49,7 +52,7 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
 
     private fun getValuesDescriptors(controllers: List<Pair<XmlTag, JSClass>>): Array<XmlAttributeDescriptor> {
         return controllers.mapNotNull { (_, controller) ->
-            val valuesField = controller.findFieldByName("values")
+            val valuesField = controller.findFieldByName(valuesField)
             return@mapNotNull (valuesField?.initializer as? JSObjectLiteralExpression)?.properties?.mapNotNull {
                 ValuesFieldAttributeDescriptor(it)
             }
@@ -61,7 +64,7 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
         controllers: List<Pair<XmlTag, JSClass>>
     ): Array<XmlAttributeDescriptor> {
         return controllers.filter { (tag, _) -> tag == context }.mapNotNull { (_, controller) ->
-            val classesField = controller.findFieldByName("classes")
+            val classesField = controller.findFieldByName(classesField)
             return@mapNotNull (classesField?.initializer as? JSArrayLiteralExpression)
                 ?.expressions?.mapNotNull { it as? JSLiteralExpression }
                 ?.map { ClassesFieldAttributeDescriptor(it) }

@@ -15,7 +15,6 @@
                                   implementation="stimulus.lang.js.StimulusJSReferenceContributor"/>
         <xml.attributeDescriptorsProvider order="first" implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
         <implicitUsageProvider implementation="stimulus.lang.js.StimulusImplicitUsagesProvider" />
-    </extensions>
-    <extensions defaultExtensionNs="JavaScript">
+        <completion.contributor order="last" language="JavaScript" implementationClass="stimulus.lang.js.StimulusCompletionContributor" />
     </extensions>
 </idea-plugin>
