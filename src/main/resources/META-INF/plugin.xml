@@ -13,7 +13,7 @@
                                   implementation="stimulus.lang.StimulusReferenceContributor"/>
         <psi.referenceContributor language="JavaScript"
                                   implementation="stimulus.lang.js.StimulusJSReferenceContributor"/>
-        <xml.attributeDescriptorsProvider order="first" implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
+        <xml.attributeDescriptorsProvider implementation="stimulus.lang.StimulusAttributeDescriptorsProvider"/>
         <implicitUsageProvider implementation="stimulus.lang.js.StimulusImplicitUsagesProvider" />
         <completion.contributor order="last" language="JavaScript" implementationClass="stimulus.lang.js.StimulusCompletionContributor" />
     </extensions>
