@@ -73,10 +73,8 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
 }
 
 class TargetsFieldAttributeDescriptor(private val field: JSField) : BaseStimulusAttributeDescriptor() {
-    override fun isEnumerated(): Boolean = true
     override fun getDeclaration(): PsiElement = field
     override fun getEnumeratedValues(): Array<String> = getLiteralValues(field)
-
     override fun getName(): String = "data-${toControllerName(field.containingFile)}-target"
 }
 
