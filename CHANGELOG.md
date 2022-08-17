@@ -4,4 +4,5 @@
 
 ## [Unreleased]
 ### Added
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
+- Support for subdirectories 
+- Support for camel-cased values
