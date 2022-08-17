@@ -12,6 +12,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.DelegatingGlobalSearchScope
@@ -22,6 +23,7 @@ import com.intellij.psi.xml.XmlTag
 
 const val dataControllerName = "data-controller"
 const val dataActionName = "data-action"
+private const val CONTROLLERS = "controllers"
 
 fun resolveController(name: String, context: PsiElement): PsiElement? {
     val filesByNames = findControllersByName(context, name, "js") + findControllersByName(context, name, "ts")
@@ -30,8 +32,29 @@ fun resolveController(name: String, context: PsiElement): PsiElement? {
     return filesByNames.filterIsInstance<JSFile>().firstNotNullOfOrNull(ES6PsiUtil::findDefaultExport)
 }
 
-fun toControllerName(it: PsiFile) =
-    StringUtil.trimEnd(FileUtil.getNameWithoutExtension(it.name), "_controller").replace('_', '-')
+fun toControllerName(file: PsiFile): String {
+    val name = StringUtil.trimEnd(FileUtil.getNameWithoutExtension(file.name), "_controller").replace('_', '-')
+    val virtualFile = file.virtualFile ?: return name
+    val startParent = virtualFile.parent
+
+    val controllersDirectory = CONTROLLERS
+    if (startParent.name == controllersDirectory) return name
+
+    var parent = startParent
+    while (parent.name != controllersDirectory) {
+        parent = parent.parent
+    }
+
+    if (parent != null) {
+        VfsUtil.getRelativePath(startParent, parent)?.let {
+            if (it.isNotEmpty()) {
+                return it.replace('_', '-').replace(".", "--") + "--" + name
+            }
+        }
+    }
+
+    return name
+}
 
 
 fun getContextControllers(contextTag: XmlTag): List<Pair<XmlTag, JSClass>> {
@@ -52,11 +75,22 @@ private fun findControllersByName(
     context: PsiElement,
     name: String,
     extension: String
-): Array<PsiFile> = FilenameIndex.getFilesByName(
-    context.project,
-    "${name}_controller.".replace('-', '_') + extension,
-    GlobalSearchScope.projectScope(context.project)
-)
+): Array<PsiFile> {
+    val filesByName = FilenameIndex.getFilesByName(
+        context.project,
+        "${trimPrefix(name)}_controller.".replace('-', '_') + extension,
+        GlobalSearchScope.projectScope(context.project)
+    )
+
+    return filesByName.filter { toControllerName(it) == name }.toTypedArray().ifEmpty { filesByName }
+}
+
+private fun trimPrefix(name: String): String {
+    val lastIndex = name.lastIndexOf("--")
+    if (lastIndex <= 0) return name
+
+    return name.substring(lastIndex + 2)
+}
 
 private fun getAllControllers(context: PsiElement): List<JSFile> {
     val scope = object : DelegatingGlobalSearchScope(GlobalSearchScope.projectScope(context.project)) {
