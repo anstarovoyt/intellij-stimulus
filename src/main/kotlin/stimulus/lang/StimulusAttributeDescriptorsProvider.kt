@@ -1,5 +1,6 @@
 package stimulus.lang
 
+import com.intellij.lang.javascript.JSStringUtil
 import com.intellij.lang.javascript.psi.*
 import com.intellij.lang.javascript.psi.ecmal4.JSClass
 import com.intellij.lang.javascript.psi.types.JSContext
@@ -86,8 +87,9 @@ class ClassesFieldAttributeDescriptor(private val expression: JSLiteralExpressio
 
 class ValuesFieldAttributeDescriptor(private val property: JSProperty) : BaseStimulusAttributeDescriptor() {
     override fun getDeclaration(): PsiElement = property
-    override fun getName(): String = "data-${toControllerName(property.containingFile)}-${property.name}-value"
+    override fun getName(): String = "data-${toControllerName(property.containingFile)}-${JSStringUtil.toKebabCase(property.name)}-value"
 }
+
 
 abstract class BaseStimulusAttributeDescriptor : BasicXmlAttributeDescriptor() {
     override fun isEnumerated(): Boolean = false
