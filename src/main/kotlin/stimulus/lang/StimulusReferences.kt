@@ -35,13 +35,13 @@ fun resolveController(name: String, context: PsiElement): PsiElement? {
 fun toControllerName(file: PsiFile): String {
     val name = StringUtil.trimEnd(FileUtil.getNameWithoutExtension(file.name), "_controller").replace('_', '-')
     val virtualFile = file.virtualFile ?: return name
-    val startParent = virtualFile.parent
+    val startParent = virtualFile.parent ?: return name
 
     val controllersDirectory = CONTROLLERS
     if (startParent.name == controllersDirectory) return name
 
-    var parent = startParent
-    while (parent.name != controllersDirectory) {
+    var parent: VirtualFile? = startParent
+    while (parent != null && parent.name != controllersDirectory) {
         parent = parent.parent
     }
 
