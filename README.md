@@ -1,5 +1,9 @@
 ## Stimulus support
 
 <!-- Plugin description -->
-Adds support for [Stimulus](https://stimulus.hotwired.dev/) framework ≥ 3.0.0.
+The plugin adds support for [Stimulus](https://stimulus.hotwired.dev/) framework ≥ 3.0.0.<br>
+The features:
+<li> Resolution and code completion for data controllers.
+<li> Limited support for actions, targets and events.
+
 <!-- Plugin description end -->
