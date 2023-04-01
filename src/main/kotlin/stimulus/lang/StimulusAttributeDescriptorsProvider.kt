@@ -13,6 +13,7 @@ import com.intellij.xml.impl.schema.AnyXmlAttributeDescriptor
 import stimulus.lang.js.classesField
 import stimulus.lang.js.targetsField
 import stimulus.lang.js.valuesField
+import stimulus.lang.js.outletsField
 
 fun getLiteralValues(field: JSField?) = (field?.initializer as? JSArrayLiteralExpression)
     ?.expressions?.mapNotNull { it as? JSLiteralExpression }
@@ -29,7 +30,8 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
                 getActionsAttributeDescriptors() +
                 getTargetDescriptors(controllers) +
                 getValuesDescriptors(controllers) +
-                getClassesDescriptors(context, controllers)
+                getClassesDescriptors(context, controllers) +
+                getOuletsDescriptors(context, controllers)
     }
 
     override fun getAttributeDescriptor(attributeName: String, context: XmlTag): XmlAttributeDescriptor? {
@@ -71,6 +73,18 @@ class StimulusAttributeDescriptorsProvider : XmlAttributeDescriptorsProvider {
                 ?.map { ClassesFieldAttributeDescriptor(it) }
         }.flatten().toTypedArray()
     }
+
+    private fun getOuletsDescriptors(
+        context: XmlTag,
+        controllers: List<Pair<XmlTag, JSClass>>
+    ): Array<XmlAttributeDescriptor> {
+        return controllers.filter { (tag, _) -> tag == context }.mapNotNull { (_, controller) ->
+            val outletsField = controller.findFieldByName(outletsField)
+            return@mapNotNull (outletsField?.initializer as? JSArrayLiteralExpression)
+                    ?.expressions?.mapNotNull { it as? JSLiteralExpression }
+                    ?.map { OutletsFieldAttributeDescriptor(it) }
+        }.flatten().toTypedArray()
+    }
 }
 
 class TargetsFieldAttributeDescriptor(private val field: JSField) : BaseStimulusAttributeDescriptor() {
@@ -90,6 +104,10 @@ class ValuesFieldAttributeDescriptor(private val property: JSProperty) : BaseSti
     override fun getName(): String = "data-${toControllerName(property.containingFile)}-${JSStringUtil.toKebabCase(property.name)}-value"
 }
 
+class OutletsFieldAttributeDescriptor(private val expression: JSLiteralExpression) : BaseStimulusAttributeDescriptor() {
+    override fun getDeclaration(): PsiElement = expression
+    override fun getName(): String = "data-${toControllerName(expression.containingFile)}-${expression.stringValue}-outlet"
+}
 
 abstract class BaseStimulusAttributeDescriptor : BasicXmlAttributeDescriptor() {
     override fun isEnumerated(): Boolean = false
