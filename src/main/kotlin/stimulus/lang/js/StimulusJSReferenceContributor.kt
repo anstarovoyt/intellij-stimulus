@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.lang.javascript.JSStringUtil
 import com.intellij.lang.javascript.patterns.JSPatterns
 import com.intellij.lang.javascript.psi.*
 import com.intellij.lang.javascript.psi.ecma6.impl.JSLocalImplicitElementImpl
@@ -23,9 +24,11 @@ import stimulus.lang.getLiteralValues
 const val targetPropertySuffix = "Target"
 const val classPropertySuffix = "Class"
 const val valuePropertySuffix = "Value"
+const val outletPropertySuffix = "Outlet"
 const val targetsField = "targets"
 const val classesField = "classes"
 const val valuesField = "values"
+const val outletsField = "outlets"
 
 class StimulusJSReferenceContributor : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
@@ -71,6 +74,9 @@ class StimulusClassFieldReference(private val refExpression: JSReferenceExpressi
         val classResolve = resolveAsClass(jsClass, name)
         if (classResolve != null) return classResolve
 
+        val outletResolve = resolveAsOutlet(jsClass, name)
+        if (outletResolve != null) return outletResolve
+
         return resolveAsValue(jsClass, name)
     }
 
@@ -91,6 +97,10 @@ class StimulusClassFieldReference(private val refExpression: JSReferenceExpressi
         } ?: return null
 
         return JSLocalImplicitElementImpl(name, null, jsProperty, JSImplicitElement.Type.Property)
+    }
+
+    private fun resolveAsOutlet(jsClass: JSClass, name: String): PsiElement? {
+        return resolveFromFieldWithSuffix(jsClass, JSStringUtil.toCamelCase(name), outletPropertySuffix, outletsField)
     }
 
     private fun resolveFromFieldWithSuffix(
@@ -135,6 +145,9 @@ class StimulusCompletionContributor : CompletionContributor() {
             })
             result.addAllElements(getLiteralValues(jsClass.findFieldByName(classesField)).map {
                 LookupElementBuilder.create(it + classPropertySuffix)
+            })
+            result.addAllElements(getLiteralValues(jsClass.findFieldByName(outletsField)).map {
+                LookupElementBuilder.create(JSStringUtil.toCamelCase(it) + outletPropertySuffix)
             })
             result.addAllElements((jsClass.findFieldByName(valuesField)
                 ?.initializer as? JSObjectLiteralExpression)

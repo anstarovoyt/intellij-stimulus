@@ -16,7 +16,7 @@ class StimulusImplicitUsagesProvider : ImplicitUsageProvider {
         
         if (element !is JSField || element.jsContext != JSContext.STATIC) return false
         val name = element.name
-        return "targets" == name || "values" == name || "classes" == name
+        return "targets" == name || "values" == name || "classes" == name || "outlets" == name
     }
 
     override fun isImplicitRead(element: PsiElement): Boolean = false
