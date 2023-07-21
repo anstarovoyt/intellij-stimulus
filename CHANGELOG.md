@@ -4,5 +4,5 @@
 
 ## [Unreleased]
 ### Added
-- Basic support for outlets 
+- Basic support for outlets. Thanks to [@isometriks](https://github.com/isometriks) 
 - Support for kebab-case controllers
