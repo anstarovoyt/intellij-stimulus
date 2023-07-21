@@ -28,8 +28,7 @@ private const val CONTROLLERS = "controllers"
 fun resolveController(name: String, context: PsiElement): PsiElement? {
     val filesByNames = findControllersByName(context, name, "js") + findControllersByName(context, name, "ts")
     if (filesByNames.isEmpty()) return null
-
-    return filesByNames.filterIsInstance<JSFile>().firstNotNullOfOrNull(ES6PsiUtil::findDefaultExport)
+    return filesByNames.firstNotNullOfOrNull(ES6PsiUtil::findDefaultExport)
 }
 
 fun toControllerName(file: PsiFile): String {
@@ -82,21 +81,21 @@ private fun findControllersByName(
     context: PsiElement,
     name: String,
     extension: String
-): Array<PsiFile> {
-    val filesWithSlash = FilenameIndex.getFilesByName(
-        context.project,
+): List<JSFile> {
+    val filesWithUnderscore = FilenameIndex.getVirtualFilesByName(
         "${trimPrefix(name)}_controller.".replace('-', '_') + extension,
         GlobalSearchScope.projectScope(context.project)
     )
 
-    val filesWithDash = FilenameIndex.getFilesByName(
-        context.project,
+    val filesWithDash = FilenameIndex.getVirtualFilesByName(
         "${trimPrefix(name)}-controller." + extension,
         GlobalSearchScope.projectScope(context.project)
     )
 
-    val files = filesWithSlash + filesWithDash
-    return files.filter { toControllerName(it) == name }.toTypedArray().ifEmpty { files }
+    val manager = context.manager
+    val files = filesWithUnderscore + filesWithDash
+    val mappedFiles = files.mapNotNull { manager.findFile(it) as? JSFile }
+    return mappedFiles.filter { toControllerName(it) == name }.ifEmpty { mappedFiles }
 }
 
 private fun trimPrefix(name: String): String {
@@ -120,7 +119,7 @@ private fun getAllControllers(context: PsiElement): List<JSFile> {
 
 private fun getAllControllers(fileType: FileType, manager: PsiManager, scope: GlobalSearchScope) =
     FileTypeIndex.getFiles(fileType, scope)
-        .mapNotNull { manager.findFile(it) as JSFile }
+        .mapNotNull { manager.findFile(it) as? JSFile }
 
 
 class StimulusControllerReference(private val name: String, psiElement: PsiElement, range: TextRange) :

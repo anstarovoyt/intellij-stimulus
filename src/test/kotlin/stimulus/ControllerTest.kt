@@ -37,8 +37,8 @@ class ControllerTest : StimulusTestBase() {
     }
 
     @Test
-    fun testSimpleSlash() {
-        doSimpleTestForControllerName("simple_slash_controller.js", "simple-slash")
+    fun testSimpleUnderscore() {
+        doSimpleTestForControllerName("simple_underscore_controller.js", "simple-underscore")
     }
 
     @Test
@@ -49,11 +49,11 @@ class ControllerTest : StimulusTestBase() {
     fun testCompletion() {
         addSimpleController("simple_controller.js")
         addSimpleController("simple2_controller.js")
-        addSimpleController("simple_slash_controller.js")
+        addSimpleController("simple_underscore_controller.js")
         addSimpleController("simple-dash-controller.js")
         addSimpleController("simpleDash-controller.js")
         myFixture.configureByText("example.html", "<div data-controller='<caret>'>hello</div>")
         val elements = myFixture.completeBasic().map { it.lookupString }
-        assertContainsElements(elements, "simple", "simple2", "simpleDash", "simple-slash", "simple-dash")
+        assertContainsElements(elements, "simple", "simple2", "simpleDash", "simple-underscore", "simple-dash")
     }
 }
