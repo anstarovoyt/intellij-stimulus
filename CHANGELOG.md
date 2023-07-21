@@ -4,5 +4,5 @@
 
 ## [Unreleased]
 ### Added
-- Support for subdirectories 
-- Support for camel-cased values
+- Basic support for outlets 
+- Support for kebab-case controllers
