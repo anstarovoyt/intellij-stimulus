@@ -33,7 +33,7 @@ fun resolveController(name: String, context: PsiElement): PsiElement? {
 }
 
 fun toControllerName(file: PsiFile): String {
-    val name = StringUtil.trimEnd(FileUtil.getNameWithoutExtension(file.name), "_controller").replace('_', '-')
+    val name = trimControllerPostfix(file).replace('_', '-')
     val virtualFile = file.virtualFile ?: return name
     val startParent = virtualFile.parent ?: return name
 
@@ -56,6 +56,13 @@ fun toControllerName(file: PsiFile): String {
     return name
 }
 
+private fun trimControllerPostfix(file: PsiFile): String {
+    val name = FileUtil.getNameWithoutExtension(file.name)
+    val trimmedSlash = StringUtil.trimEnd(name, "_controller")
+    if (name != trimmedSlash) return trimmedSlash
+    return StringUtil.trimEnd(name, "-controller")
+}
+
 
 fun getContextControllers(contextTag: XmlTag): List<Pair<XmlTag, JSClass>> {
     return generateSequence(contextTag) { it.parentTag }.mapNotNull { tag ->
@@ -76,13 +83,20 @@ private fun findControllersByName(
     name: String,
     extension: String
 ): Array<PsiFile> {
-    val filesByName = FilenameIndex.getFilesByName(
+    val filesWithSlash = FilenameIndex.getFilesByName(
         context.project,
         "${trimPrefix(name)}_controller.".replace('-', '_') + extension,
         GlobalSearchScope.projectScope(context.project)
     )
 
-    return filesByName.filter { toControllerName(it) == name }.toTypedArray().ifEmpty { filesByName }
+    val filesWithDash = FilenameIndex.getFilesByName(
+        context.project,
+        "${trimPrefix(name)}-controller." + extension,
+        GlobalSearchScope.projectScope(context.project)
+    )
+
+    val files = filesWithSlash + filesWithDash
+    return files.filter { toControllerName(it) == name }.toTypedArray().ifEmpty { files }
 }
 
 private fun trimPrefix(name: String): String {
@@ -94,8 +108,11 @@ private fun trimPrefix(name: String): String {
 
 private fun getAllControllers(context: PsiElement): List<JSFile> {
     val scope = object : DelegatingGlobalSearchScope(GlobalSearchScope.projectScope(context.project)) {
-        override fun contains(file: VirtualFile): Boolean =
-            super.contains(file) && file.nameSequence.endsWith("_controller.js")
+        override fun contains(file: VirtualFile): Boolean {
+            val nameSequence = file.nameSequence
+            return super.contains(file) &&
+                    (nameSequence.endsWith("_controller.js") || nameSequence.endsWith("-controller.js"))
+        }
     }
     return getAllControllers(JavaScriptFileType.INSTANCE, context.manager, scope) +
             getAllControllers(TypeScriptFileType.INSTANCE, context.manager, scope)
