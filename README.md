@@ -6,4 +6,7 @@ The features:
 <li> Resolution and code completion for data controllers.
 <li> Limited support for actions, targets, events and outlets.
 
+<h3>
+The plugin is deprecated, please use the <a href="https://plugins.jetbrains.com/plugin/18940-stimulus/edit">new Stimulus plugin</a> instead.
+
 <!-- Plugin description end -->
