@@ -7,6 +7,6 @@ The features:
 <li> Limited support for actions, targets, events and outlets.
 
 <h3>
-The plugin is deprecated, please use the <a href="https://plugins.jetbrains.com/plugin/18940-stimulus/edit">new Stimulus plugin</a> instead.
+The plugin is deprecated, please use the <a href="https://plugins.jetbrains.com/plugin/24562-stimulus">new Stimulus plugin</a> instead.
 
 <!-- Plugin description end -->
